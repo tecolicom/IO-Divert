@@ -1,5 +1,5 @@
 {
-   "abstract" : "It's new $module",
+   "abstract" : "Divert STDOUT to capture and process output",
    "author" : [
       "Kazumasa Utashiro <kaz@utashiro.com>"
    ],
@@ -42,7 +42,7 @@
       },
       "runtime" : {
          "requires" : {
-            "perl" : "5.008001"
+            "perl" : "v5.14.0"
          }
       },
       "test" : {

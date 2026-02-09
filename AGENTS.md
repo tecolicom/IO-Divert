@@ -9,7 +9,7 @@ captured output is optionally processed and printed to the original STDOUT.
 ## Origin
 
 Extracted from `App::sdif::Divert` used in sdif/cdif tools. Released as
-independent module for general use. sdif-tools now depends on IO::Divert.
+independent module v0.99 (2026-02-09). sdif-tools v4.44 depends on IO::Divert.
 
 ## Key Design Decisions
 
@@ -78,12 +78,13 @@ UTF-8 test requires `Encode::decode()` on output scalar because:
 - META.json x_contributors: auto-generated from git log, contains email - acceptable
 - No email address in POD AUTHOR section or LICENSE
 - Run sdif-tools tests from its own directory: `cd /path/to/sdif-tools && prove -l t/`
+- CI: Perl 5.14-5.42, GitHub Actions with actions-setup-perl
 
 ## Related Work
 
 - Capture::Tiny - heavier, captures process-wide
 - IO::Capture::Stdout - not RAII pattern
-- App::sdif::Divert - original implementation (removed from sdif-tools)
+- App::sdif::Divert - original implementation (removed from sdif-tools v4.44)
 
 ## Failed Experiments (Context)
 

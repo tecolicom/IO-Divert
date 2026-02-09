@@ -154,6 +154,21 @@ subtest 'cancel method' => sub {
     is $output, '', 'cancel suppresses output';
 };
 
+subtest 'content accessible after cancel' => sub {
+    my $captured;
+    {
+	local *STDOUT;
+	open STDOUT, '>', \my $dummy;
+	{
+	    my $d = IO::Divert->new(autoprint => 0);
+	    print "still here";
+	    $d->cancel;
+	    $captured = $d->content;
+	}
+    }
+    is $captured, 'still here', 'content available after cancel';
+};
+
 subtest 'cancel with FINAL' => sub {
     my $final_called = 0;
     my $output = '';

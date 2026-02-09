@@ -19,8 +19,7 @@ sub new {
     my $encoding = $opt{encoding};
     open $opt{FH}, ">:encoding($encoding)", \$opt{BUFFER}
 	or croak "open: $!";
-    $opt{STDOUT} = select $opt{FH}
-	or croak "select: $!";
+    $opt{STDOUT} = select $opt{FH};
     bless \%opt, $class;
 }
 

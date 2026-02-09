@@ -1,4 +1,4 @@
-
+[![Actions Status](https://github.com/tecolicom/IO-Divert/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/tecolicom/IO-Divert/actions?workflow=test) [![MetaCPAN Release](https://badge.fury.io/pl/IO-Divert.svg)](https://metacpan.org/release/IO-Divert)
 # NAME
 
 IO::Divert - Divert STDOUT to capture and process output
@@ -15,6 +15,10 @@ IO::Divert - Divert STDOUT to capture and process output
         complex_output_function();
         # All output is commented, without modifying the function
     }
+
+# VERSION
+
+Version 0.99
 
 # DESCRIPTION
 

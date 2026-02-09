@@ -52,7 +52,18 @@
       }
    },
    "release_status" : "unstable",
-   "version" : "0.01",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/tecolicom/IO-Divert/issues"
+      },
+      "homepage" : "https://github.com/tecolicom/IO-Divert",
+      "repository" : {
+         "type" : "git",
+         "url" : "https://github.com/tecolicom/IO-Divert.git",
+         "web" : "https://github.com/tecolicom/IO-Divert"
+      }
+   },
+   "version" : "0.99",
    "x_authority" : "cpan:UTASHIRO",
    "x_contributors" : [
       "Kazumasa Utashiro <kaz@utashiro.com>"

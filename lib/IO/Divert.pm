@@ -6,7 +6,7 @@ use utf8;
 use Encode ();
 use Carp;
 
-our $VERSION = "0.01";
+our $VERSION = "0.99";
 
 sub new {
     my $class = shift;
@@ -98,6 +98,10 @@ IO::Divert - Divert STDOUT to capture and process output
         complex_output_function();
         # All output is commented, without modifying the function
     }
+
+=head1 VERSION
+
+Version 0.99
 
 =head1 DESCRIPTION
 

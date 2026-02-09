@@ -7,42 +7,31 @@ IO::Divert - Divert STDOUT to capture and process output
 
     use IO::Divert;
 
-    # Basic usage - capture and auto-print on scope exit
-    {
-        my $divert = IO::Divert->new;
-        print "Hello, World!\n";
-        # Output is printed when $divert goes out of scope
-    }
-
-    # With post-processing
     {
         my $divert = IO::Divert->new(
-            FINAL => sub { s/^/PREFIX: /mg }
+            FINAL => sub { s/^/# /mg }
         );
-        print "Line 1\n";
-        print "Line 2\n";
-        # Output: "PREFIX: Line 1\nPREFIX: Line 2\n"
-    }
 
-    # Capture without auto-print
-    my $captured;
-    {
-        my $divert = IO::Divert->new(autoprint => 0);
-        print "captured text";
-        $captured = $divert->content;
+        complex_output_function();
+        # All output is commented, without modifying the function
     }
 
 # DESCRIPTION
 
-IO::Divert temporarily diverts STDOUT to an internal buffer.  When the
-object is destroyed (typically at the end of scope), the captured
-output is optionally processed and printed to the original STDOUT.
+IO::Divert temporarily redirects STDOUT to an internal buffer using
+Perl's `select()` function.  When the object goes out of scope, the
+captured output is optionally processed through a callback and printed
+to the original STDOUT.
 
-This is useful for:
+The key benefit is **transparent output transformation**: you can modify
+all output from a block of code without changing any individual `print`
+statements within it.
 
-- Adding prefixes or suffixes to output
-- Post-processing output (filtering, transformation)
-- Capturing output for later use
+This is particularly useful when:
+
+- You need to post-process output from code you don't want to modify
+- Adding consistent formatting (prefixes, indentation) to complex output
+- Conditionally suppressing or transforming output based on results
 
 # CONSTRUCTOR
 
@@ -104,32 +93,36 @@ Flushes the output buffer.  Returns the object for chaining.
 
 Clears the captured content.  Returns the object for chaining.
 
+## cancel
+
+    $divert->cancel;
+
+Cancels the `FINAL` callback and autoprint on object destruction.
+The captured content remains accessible via `content`.
+Returns the object for chaining.
+
 # EXAMPLES
 
-## Adding line numbers
+## Transform output from existing code
 
     {
-        my $n = 1;
         my $divert = IO::Divert->new(
-            FINAL => sub { s/^/sprintf("%4d: ", $n++)/mge }
+            FINAL => sub { s/^/    /mg }  # indent all lines
         );
-        print "First line\n";
-        print "Second line\n";
+
+        legacy_report_generator();  # prints many lines
+        # All output is indented without touching the original code
     }
-    # Output:
-    #    1: First line
-    #    2: Second line
 
-## Conditional output
+## Capture without printing
 
+    my $output;
     {
         my $divert = IO::Divert->new(autoprint => 0);
-        print "Some output\n";
-        my $content = $divert->content;
-        if ($should_print) {
-            print $content;
-        }
+        generate_output();
+        $output = $divert->content;
     }
+    # Process $output as needed
 
 # SEE ALSO
 
@@ -141,7 +134,7 @@ Kazumasa Utashiro <kaz@utashiro.com>
 
 # LICENSE
 
-Copyright (C) Kazumasa Utashiro.
+Copyright 2026 Kazumasa Utashiro.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

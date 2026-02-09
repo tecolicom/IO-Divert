@@ -55,11 +55,17 @@ sub clear {
     $obj;
 }
 
+sub cancel {
+    my $obj = shift;
+    $obj->{autoprint} = 0;
+    delete $obj->{FINAL};
+    $obj;
+}
+
 sub DESTROY {
     my $obj = shift;
-    $obj->fh->close;
     select $obj->{STDOUT};
-    $obj->{BUFFER} // return;
+    $obj->fh->close;
     if (my $final = $obj->{FINAL}) {
 	local $_ = $obj->{BUFFER};
 	$final->();
@@ -84,46 +90,35 @@ IO::Divert - Divert STDOUT to capture and process output
 
     use IO::Divert;
 
-    # Basic usage - capture and auto-print on scope exit
-    {
-        my $divert = IO::Divert->new;
-        print "Hello, World!\n";
-        # Output is printed when $divert goes out of scope
-    }
-
-    # With post-processing
     {
         my $divert = IO::Divert->new(
-            FINAL => sub { s/^/PREFIX: /mg }
+            FINAL => sub { s/^/# /mg }
         );
-        print "Line 1\n";
-        print "Line 2\n";
-        # Output: "PREFIX: Line 1\nPREFIX: Line 2\n"
-    }
 
-    # Capture without auto-print
-    my $captured;
-    {
-        my $divert = IO::Divert->new(autoprint => 0);
-        print "captured text";
-        $captured = $divert->content;
+        complex_output_function();
+        # All output is commented, without modifying the function
     }
 
 =head1 DESCRIPTION
 
-IO::Divert temporarily diverts STDOUT to an internal buffer.  When the
-object is destroyed (typically at the end of scope), the captured
-output is optionally processed and printed to the original STDOUT.
+IO::Divert temporarily redirects STDOUT to an internal buffer using
+Perl's C<select()> function.  When the object goes out of scope, the
+captured output is optionally processed through a callback and printed
+to the original STDOUT.
 
-This is useful for:
+The key benefit is B<transparent output transformation>: you can modify
+all output from a block of code without changing any individual C<print>
+statements within it.
+
+This is particularly useful when:
 
 =over 4
 
-=item * Adding prefixes or suffixes to output
+=item * You need to post-process output from code you don't want to modify
 
-=item * Post-processing output (filtering, transformation)
+=item * Adding consistent formatting (prefixes, indentation) to complex output
 
-=item * Capturing output for later use
+=item * Conditionally suppressing or transforming output based on results
 
 =back
 
@@ -191,32 +186,36 @@ Flushes the output buffer.  Returns the object for chaining.
 
 Clears the captured content.  Returns the object for chaining.
 
+=head2 cancel
+
+    $divert->cancel;
+
+Cancels the C<FINAL> callback and autoprint on object destruction.
+The captured content remains accessible via C<content>.
+Returns the object for chaining.
+
 =head1 EXAMPLES
 
-=head2 Adding line numbers
+=head2 Transform output from existing code
 
     {
-        my $n = 1;
         my $divert = IO::Divert->new(
-            FINAL => sub { s/^/sprintf("%4d: ", $n++)/mge }
+            FINAL => sub { s/^/    /mg }  # indent all lines
         );
-        print "First line\n";
-        print "Second line\n";
+
+        legacy_report_generator();  # prints many lines
+        # All output is indented without touching the original code
     }
-    # Output:
-    #    1: First line
-    #    2: Second line
 
-=head2 Conditional output
+=head2 Capture without printing
 
+    my $output;
     {
         my $divert = IO::Divert->new(autoprint => 0);
-        print "Some output\n";
-        my $content = $divert->content;
-        if ($should_print) {
-            print $content;
-        }
+        generate_output();
+        $output = $divert->content;
     }
+    # Process $output as needed
 
 =head1 SEE ALSO
 
@@ -228,7 +227,7 @@ Kazumasa Utashiro E<lt>kaz@utashiro.comE<gt>
 
 =head1 LICENSE
 
-Copyright (C) Kazumasa Utashiro.
+Copyright 2026 Kazumasa Utashiro.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself.

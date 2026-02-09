@@ -217,13 +217,42 @@ Returns the object for chaining.
     }
     # Process $output as needed
 
+=head1 PRACTICAL USAGE IN sdif/cdif
+
+This module was originally extracted from L<App::sdif>.
+
+In B<sdif> and B<cdif>, C<git log --graph> output has graph prefix
+characters (C<| >, C<* >, etc.) on each line.  To process the diff
+content, the prefix is stripped from input lines.  IO::Divert is then
+used to recover the prefix by prepending it to every output line.
+Since the diff processing code has many scattered C<print> statements,
+modifying each one to handle the prefix would be impractical.
+IO::Divert recovers the prefix in one place, so the processing code
+remains completely unaware of it, and works the same whether graph
+output is present or not.
+
+    my $divert;
+    if ($prefix) {
+        $divert = IO::Divert->new(
+            FINAL => sub { s/^/$prefix/mg }
+        );
+    }
+
+    # diff processing code -- unaware of graph prefix
+    process_diff();
+
+    # $divert goes out of scope:
+    # prefix is recovered in the output by FINAL callback
+
 =head1 SEE ALSO
+
+L<App::sdif>
 
 L<Capture::Tiny>, L<IO::Capture::Stdout>
 
 =head1 AUTHOR
 
-Kazumasa Utashiro E<lt>kaz@utashiro.comE<gt>
+Kazumasa Utashiro
 
 =head1 LICENSE
 

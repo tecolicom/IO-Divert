@@ -124,13 +124,42 @@ Returns the object for chaining.
     }
     # Process $output as needed
 
+# PRACTICAL USAGE IN sdif/cdif
+
+This module was originally extracted from [App::sdif](https://metacpan.org/pod/App%3A%3Asdif).
+
+In **sdif** and **cdif**, `git log --graph` output has graph prefix
+characters (`| `, `* `, etc.) on each line.  To process the diff
+content, the prefix is stripped from input lines.  IO::Divert is then
+used to recover the prefix by prepending it to every output line.
+Since the diff processing code has many scattered `print` statements,
+modifying each one to handle the prefix would be impractical.
+IO::Divert recovers the prefix in one place, so the processing code
+remains completely unaware of it, and works the same whether graph
+output is present or not.
+
+    my $divert;
+    if ($prefix) {
+        $divert = IO::Divert->new(
+            FINAL => sub { s/^/$prefix/mg }
+        );
+    }
+
+    # diff processing code -- unaware of graph prefix
+    process_diff();
+
+    # $divert goes out of scope:
+    # prefix is recovered in the output by FINAL callback
+
 # SEE ALSO
+
+[App::sdif](https://metacpan.org/pod/App%3A%3Asdif)
 
 [Capture::Tiny](https://metacpan.org/pod/Capture%3A%3ATiny), [IO::Capture::Stdout](https://metacpan.org/pod/IO%3A%3ACapture%3A%3AStdout)
 
 # AUTHOR
 
-Kazumasa Utashiro <kaz@utashiro.com>
+Kazumasa Utashiro
 
 # LICENSE
 

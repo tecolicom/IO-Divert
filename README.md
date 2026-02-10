@@ -27,6 +27,12 @@ Perl's `select()` function.  When the object goes out of scope, the
 captured output is optionally processed through a callback and printed
 to the original STDOUT.
 
+Since this module uses `select()`, it only affects Perl's built-in
+`print`, `printf`, `say`, and `write` functions.  Output from
+external commands (via `system()` or backticks) is not captured.
+Use [Command::Run](https://metacpan.org/pod/Command%3A%3ARun) or [Capture::Tiny](https://metacpan.org/pod/Capture%3A%3ATiny) if you need to capture
+output from external commands.
+
 The key benefit is **transparent output transformation**: you can modify
 all output from a block of code without changing any individual `print`
 statements within it.
@@ -128,6 +134,29 @@ Returns the object for chaining.
     }
     # Process $output as needed
 
+## Nested diversion
+
+IO::Divert objects can be nested.  The inner object diverts output
+from the outer one, and when it goes out of scope, its output
+(processed by FINAL if given) flows back to the outer diversion.
+
+    {
+        my $outer = IO::Divert->new;
+        print "before\n";
+        {
+            my $inner = IO::Divert->new(
+                FINAL => sub { s/^/> /mg }
+            );
+            print "indented\n";
+        }
+        print "after\n";
+    }
+    # Output: before\n> indented\nafter\n
+
+This pattern is used in **cdif**, where an outer diversion captures
+the entire output while inner diversions add prefixes for each
+diff chunk in a loop.
+
 # PRACTICAL USAGE IN sdif/cdif
 
 This module was originally extracted from [App::sdif](https://metacpan.org/pod/App%3A%3Asdif).
@@ -159,7 +188,7 @@ output is present or not.
 
 [App::sdif](https://metacpan.org/pod/App%3A%3Asdif)
 
-[Capture::Tiny](https://metacpan.org/pod/Capture%3A%3ATiny), [IO::Capture::Stdout](https://metacpan.org/pod/IO%3A%3ACapture%3A%3AStdout)
+[Command::Run](https://metacpan.org/pod/Command%3A%3ARun), [Capture::Tiny](https://metacpan.org/pod/Capture%3A%3ATiny), [IO::Capture::Stdout](https://metacpan.org/pod/IO%3A%3ACapture%3A%3AStdout)
 
 # AUTHOR
 

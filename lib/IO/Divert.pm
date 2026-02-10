@@ -109,6 +109,12 @@ Perl's C<select()> function.  When the object goes out of scope, the
 captured output is optionally processed through a callback and printed
 to the original STDOUT.
 
+Since this module uses C<select()>, it only affects Perl's built-in
+C<print>, C<printf>, C<say>, and C<write> functions.  Output from
+external commands (via C<system()> or backticks) is not captured.
+Use L<Command::Run> or L<Capture::Tiny> if you need to capture
+output from external commands.
+
 The key benefit is B<transparent output transformation>: you can modify
 all output from a block of code without changing any individual C<print>
 statements within it.
@@ -220,6 +226,29 @@ Returns the object for chaining.
     }
     # Process $output as needed
 
+=head2 Nested diversion
+
+IO::Divert objects can be nested.  The inner object diverts output
+from the outer one, and when it goes out of scope, its output
+(processed by FINAL if given) flows back to the outer diversion.
+
+    {
+        my $outer = IO::Divert->new;
+        print "before\n";
+        {
+            my $inner = IO::Divert->new(
+                FINAL => sub { s/^/> /mg }
+            );
+            print "indented\n";
+        }
+        print "after\n";
+    }
+    # Output: before\n> indented\nafter\n
+
+This pattern is used in B<cdif>, where an outer diversion captures
+the entire output while inner diversions add prefixes for each
+diff chunk in a loop.
+
 =head1 PRACTICAL USAGE IN sdif/cdif
 
 This module was originally extracted from L<App::sdif>.
@@ -251,7 +280,7 @@ output is present or not.
 
 L<App::sdif>
 
-L<Capture::Tiny>, L<IO::Capture::Stdout>
+L<Command::Run>, L<Capture::Tiny>, L<IO::Capture::Stdout>
 
 =head1 AUTHOR
 

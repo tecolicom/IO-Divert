@@ -187,4 +187,48 @@ subtest 'cancel with FINAL' => sub {
     is $final_called, 0, 'FINAL not called after cancel';
 };
 
+subtest 'nested: outer capture, inner FINAL' => sub {
+    my $output = '';
+    {
+	local *STDOUT;
+	open STDOUT, '>', \$output;
+	{
+	    my $outer = IO::Divert->new;
+	    print "before\n";
+	    {
+		my $inner = IO::Divert->new(FINAL => sub { s/^/> /mg });
+		print "line1\n";
+		print "line2\n";
+	    }
+	    print "after\n";
+	}
+    }
+    is $output, "before\n> line1\n> line2\nafter\n",
+	'outer captures all, inner adds prefix';
+};
+
+subtest 'nested: multiple inner blocks' => sub {
+    my $output = '';
+    {
+	local *STDOUT;
+	open STDOUT, '>', \$output;
+	{
+	    my $outer = IO::Divert->new;
+	    print "A\n";
+	    {
+		my $d = IO::Divert->new(FINAL => sub { s/^/1: /mg });
+		print "B\n";
+	    }
+	    print "C\n";
+	    {
+		my $d = IO::Divert->new(FINAL => sub { s/^/2: /mg });
+		print "D\n";
+	    }
+	    print "E\n";
+	}
+    }
+    is $output, "A\n1: B\nC\n2: D\nE\n",
+	'multiple inner diversions work correctly';
+};
+
 done_testing;
